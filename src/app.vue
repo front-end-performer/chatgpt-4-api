@@ -1,24 +1,31 @@
 <script>
 import { defineComponent, ref, reactive, onMounted } from "vue";
+import { useMainStore } from "@/store";
 import { useBem } from "@/utilities/bem";
-import { createAsistant, getCompletionsWithAssistant, retirievAsistant } from "@/api/complitions";
+import {
+  getCompletionsWithAssistant,
+  createThread,
+} from "@/api/assistant";
 
 export default defineComponent({
   name: "App",
   setup() {
     const bem = useBem("App");
+    const store = useMainStore();
+
     const userInput = ref("");
-    const assistant = ref("");
     const messages = reactive([
       {
-        text: "Hello, i'm your Support Assistant. How can i help you?",
+        text: "Hallo, ich bin Ihr Kreuzfahrtschiff-Assistent. Wie kann ich Ihnen helfen?",
         author: "assistant",
       },
     ]);
 
-    // onMounted(async () => {
-    //   assistant.value = await createAsistant();
-    // });
+    onMounted(async () => {
+      console.log("onMounted");
+
+      // await createThread();
+    });
 
     const sendRequest = async () => {
       if (userInput.value === "") {
@@ -29,11 +36,15 @@ export default defineComponent({
         author: "user",
       });
 
-      // console.log(assistant.value);
-
-      // await retirievAsistant();
-
-      await getCompletionsWithAssistant('asst_dKiYwMFpkHUx1Gkl1leJtI6V', "thread_Ie1OYtBpS7Fx25KKbxK0PSy6", userInput.value);
+      await getCompletionsWithAssistant(userInput.value).then((res) => {
+        if (res) {
+          console.log(res.data[0].content[0].text.value);
+          messages.push({
+            text: res.data[0].content[0].text.value,
+            author: "assistant",
+          });
+        }
+      });
 
       // getCompletions(userInput.value).then(response => {
       //   console.log("RESPONSE COMPLETIONS", response.message.content);
@@ -46,7 +57,7 @@ export default defineComponent({
 
       userInput.value = "";
     };
-    return { bem, userInput, messages, sendRequest };
+    return { bem, userInput, messages, sendRequest, store };
   },
 });
 </script>

@@ -3,14 +3,12 @@ export default defineNuxtConfig({
   ssr: false,
   devtools: { enabled: false },
   runtimeConfig: {
-    apiKey: process.env.OPENAI_API_KEY
+    apiKey: process.env.OPENAI_API_KEY,
   },
   srcDir: "src",
-  css: [
-    "~/assets/main.css",
-    "@fortawesome/fontawesome-svg-core/styles.css",
-  ],
-  plugins: [{ src: "./src/plugins/fontAwesome.ts" }],
+  css: ["~/assets/main.css", "@fortawesome/fontawesome-svg-core/styles.css"],
+  modules: ["@pinia/nuxt"],
+  plugins: ["./src/plugins/fontAwesome.ts", "./src/plugins/pinia.ts"],
   app: {
     head: {
       meta: [
