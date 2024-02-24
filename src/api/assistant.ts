@@ -43,15 +43,14 @@ export const createThread = async () => {
   store.setThreadID(thread.id);
 };
 
-export const retrievAssistant = async () => {
-  const store = useMainStore();
-  const assistant = await openai.beta.assistants.retrieve(
-    store.$state.assistantID
-  );
-  console.log("assistant", assistant);
-};
-
 export const getCompletionsWithAssistant = async (input: string) => {
+  //   1. assistant created - save to DB (assistantID) and re-use;
+  //   2. thread created (threadID) - save to DB and re-use per user
+  //   3. thread messsge created by using threadID
+  //   4. running assistant on created thread by using stored threadID and assisantID - saving runID to DB
+  //   5. periodically retriving a RUN to check its status
+  //  6. retrieve the Messages added by the Assistant to the Thread
+
   const store = useMainStore();
   const myThreadMessage = await openai.beta.threads.messages.create(
     store.$state.threadID,
@@ -60,20 +59,13 @@ export const getCompletionsWithAssistant = async (input: string) => {
       content: input,
     }
   );
-  console.log("This is the Thread Message object: ", myThreadMessage, "\n");
-
-  //   1. assistant created - save to DB (assistantID) and re-use;
-  //   2. thread created (threadID) - save to DB and re-use per user
-  //   3. thread messsge created by using threadID
-  //   4. running assistant on created thread by using stored threadID and assisantID - saving runID to DB
-  //   5. periodically retriving a RUN to check its status
-  //  6. retrieve the Messages added by the Assistant to the Thread
+  console.log("------- This is the Thread Message object: ", myThreadMessage, "\n");
 
   const myRun = await openai.beta.threads.runs.create(store.$state.threadID, {
     assistant_id: store.$state.assistantID,
   });
   store.setRunID(myRun.id);
-  console.log("RUN object created: ", myRun, "\n");
+  console.log("-------- This is the RUN object created: ", myRun, "\n");
 
   const retrieveRun = async () => {
     let keepRetrievingRun;
@@ -84,10 +76,10 @@ export const getCompletionsWithAssistant = async (input: string) => {
         store.$state.runID
       );
 
-      console.log(`Run status: ${keepRetrievingRun.status}`);
+      console.log(`-------- Run status: ${keepRetrievingRun.status}`);
 
       if (keepRetrievingRun.status === "completed") {
-        console.log("completed \n");
+        console.log("------ Completed \n");
         break;
       }
     }

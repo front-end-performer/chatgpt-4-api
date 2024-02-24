@@ -2,17 +2,14 @@
 import { defineComponent, ref, reactive, onMounted } from "vue";
 import { useMainStore } from "@/store";
 import { useBem } from "@/utilities/bem";
-import {
-  getCompletionsWithAssistant,
-  createThread,
-} from "@/api/assistant";
+import { getCompletionsWithAssistant, createThread } from "@/api/assistant";
 
 export default defineComponent({
   name: "App",
   setup() {
     const bem = useBem("App");
     const store = useMainStore();
-
+    const chatDisplay = ref(null);
     const userInput = ref("");
     const messages = reactive([
       {
@@ -24,13 +21,14 @@ export default defineComponent({
     onMounted(async () => {
       console.log("onMounted");
 
-      // await createThread();
+      await createThread();
     });
 
     const sendRequest = async () => {
       if (userInput.value === "") {
         return;
       }
+
       messages.push({
         text: userInput.value,
         author: "user",
@@ -38,7 +36,6 @@ export default defineComponent({
 
       await getCompletionsWithAssistant(userInput.value).then((res) => {
         if (res) {
-          console.log(res.data[0].content[0].text.value);
           messages.push({
             text: res.data[0].content[0].text.value,
             author: "assistant",
@@ -46,18 +43,9 @@ export default defineComponent({
         }
       });
 
-      // getCompletions(userInput.value).then(response => {
-      //   console.log("RESPONSE COMPLETIONS", response.message.content);
-
-      //   messages.push({
-      //     text: response.message.content,
-      //     author: response.message.role
-      //   })
-      // });
-
       userInput.value = "";
     };
-    return { bem, userInput, messages, sendRequest, store };
+    return { bem, chatDisplay, userInput, messages, sendRequest, store };
   },
 });
 </script>
